@@ -1,3 +1,4 @@
+// @/lib/quotes.ts
 import { supabase } from './supabase';
 import { Quote } from '@/types';
 
@@ -29,14 +30,13 @@ export async function fetchQuotes(userId?: string): Promise<Quote[]> {
     }
 
     const { data, error } = await query;
-
     if (error) throw error;
 
-    return (data ?? []).map((item) => ({
+    return (data ?? []).map((item: any) => ({
       id: item.id,
       text: item.text,
       author: item.author,
-      category: item.category,
+      category: item.category, // use the text column directly
       category_id: item.category_id,
       tags: Array.isArray(item.tags) ? item.tags : [],
       is_public: item.is_public,
@@ -53,44 +53,43 @@ export async function fetchQuotes(userId?: string): Promise<Quote[]> {
  * Fetch quotes by category
  */
 export async function fetchQuotesByCategory(
-  categoryId: string,
+  categoryName: string,
   userId?: string
 ): Promise<Quote[]> {
   try {
-    if (categoryId === 'all') {
+    if (categoryName.toLowerCase() === 'all') {
       return fetchQuotes(userId);
     }
 
-    let query = supabase
-      .from('quotes')
-      .select(`
-        id,
-        text,
-        author,
-        category,
-        category_id,
-        tags,
-        is_public,
-        user_id,
-        created_at
-      `)
-      .eq('category_id', categoryId);
+    let query = supabase.from('quotes').select(`
+      id,
+      text,
+      author,
+      category,
+      category_id,
+      tags,
+      is_public,
+      user_id,
+      created_at
+    `);
 
     if (userId) {
-      query = query.or(`user_id.eq.${userId},is_public.eq.true`);
+      // fetch either user-specific quotes or public quotes in this category
+      query = query
+        .eq('category', categoryName)
+        .or(`user_id.eq.${userId},is_public.eq.true`);
     } else {
-      query = query.eq('is_public', true);
+      query = query.eq('category', categoryName).eq('is_public', true);
     }
 
     const { data, error } = await query;
-
     if (error) throw error;
 
-    return (data ?? []).map((item) => ({
+    return (data ?? []).map((item: any) => ({
       id: item.id,
       text: item.text,
       author: item.author,
-      category: item.category,
+      category: item.category, // directly use the text column
       category_id: item.category_id,
       tags: Array.isArray(item.tags) ? item.tags : [],
       is_public: item.is_public,

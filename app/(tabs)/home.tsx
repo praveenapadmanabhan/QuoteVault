@@ -1,3 +1,4 @@
+// @/screens/HomeScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -23,7 +24,7 @@ export default function HomeScreen() {
   const [filteredQuotes, setFilteredQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -33,16 +34,13 @@ export default function HomeScreen() {
   const loadQuotes = async () => {
     try {
       setLoading(true);
-      console.log('Loading quotes for category:', selectedCategory);
-
       let data: Quote[];
-      if (selectedCategory === 'all') {
-        data = await fetchQuotes();
+      if (selectedCategory.toLowerCase() === 'all') {
+        data = await fetchQuotes(user?.id);
       } else {
-        data = await fetchQuotesByCategory(selectedCategory);
+        data = await fetchQuotesByCategory(selectedCategory, user?.id);
       }
 
-      console.log('Loaded quotes:', data.length);
       setQuotes(data);
       setFilteredQuotes(data);
     } catch (error) {
@@ -74,8 +72,8 @@ export default function HomeScreen() {
     setFilteredQuotes(filtered);
   };
 
-  const handleCategoryFilter = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+  const handleCategoryFilter = (categoryName: string) => {
+    setSelectedCategory(categoryName);
     setSearchQuery('');
   };
 
@@ -85,27 +83,15 @@ export default function HomeScreen() {
   };
 
   const handleToggleFavorite = async (quoteId: string) => {
-    if (!user?.id) {
-      console.log('User not logged in');
-      // TODO: Show a message asking user to log in
-      return;
-    }
+    if (!user?.id) return;
 
     try {
-      console.log('Toggling favorite for quote:', quoteId);
       const isFavorite = await toggleFavorite(quoteId, user.id);
-      
-      // Update local state immediately for better UX
-      setQuotes(prevQuotes =>
-        prevQuotes.map(q =>
-          q.id === quoteId ? { ...q, is_favorite: isFavorite } : q
-        )
+      setQuotes((prev) =>
+        prev.map((q) => (q.id === quoteId ? { ...q, is_favorite: isFavorite } : q))
       );
-      
-      setFilteredQuotes(prevQuotes =>
-        prevQuotes.map(q =>
-          q.id === quoteId ? { ...q, is_favorite: isFavorite } : q
-        )
+      setFilteredQuotes((prev) =>
+        prev.map((q) => (q.id === quoteId ? { ...q, is_favorite: isFavorite } : q))
       );
     } catch (error) {
       console.error('Failed to toggle favorite:', error);

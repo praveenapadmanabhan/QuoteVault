@@ -1,140 +1,111 @@
+// @/components/CategoryFilter.tsx
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
-import { fetchCategories } from '@/lib/categories';
-import { Category } from '@/types';
+import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { fetchCategories, Category } from '@/lib/categories';
 
-interface CategoryFilterProps {
+interface Props {
   selectedCategory: string;
-  onSelectCategory: (categoryId: string) => void;
+  onSelectCategory: (categoryName: string) => void;
 }
 
 export default function CategoryFilter({
   selectedCategory,
   onSelectCategory,
-}: CategoryFilterProps) {
+}: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadCategories();
   }, []);
 
   const loadCategories = async () => {
-    try {
-      const data = await fetchCategories();
-      console.log('Loaded categories:', data);
-      setCategories(data);
-    } catch (error) {
-      console.error('Failed to load categories:', error);
-    } finally {
-      setLoading(false);
-    }
+    const data = await fetchCategories();
+    setCategories(data);
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#007AFF" />
-      </View>
-    );
-  }
 
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={styles.scrollView}
-      contentContainerStyle={styles.contentContainer}
+      style={styles.container}
     >
       {/* All category */}
-      <TouchableOpacity
-        style={[
-          styles.categoryButton,
-          selectedCategory === 'all' && styles.categoryButtonSelected,
-        ]}
-        onPress={() => onSelectCategory('all')}
-      >
-        <Text
-          style={[
-            styles.categoryText,
-            selectedCategory === 'all' && styles.categoryTextSelected,
-          ]}
-        >
-          All
-        </Text>
-      </TouchableOpacity>
+      <CategoryChip
+        label="All"
+        selected={selectedCategory === 'All'}
+        onPress={() => onSelectCategory('All')}
+      />
 
-      {/* Dynamic categories */}
-      {categories.map((category) => {
-        const categoryId = String(category.id);
-
-        return (
-          <TouchableOpacity
-            key={categoryId}
-            style={[
-              styles.categoryButton,
-              selectedCategory === categoryId &&
-                styles.categoryButtonSelected,
-            ]}
-            onPress={() => onSelectCategory(categoryId)}
-          >
-            <Text
-              style={[
-                styles.categoryText,
-                selectedCategory === categoryId &&
-                  styles.categoryTextSelected,
-              ]}
-            >
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      {categories.map((category) => (
+        <CategoryChip
+          key={category.id}
+          label={category.name}
+          selected={selectedCategory === category.name}
+          onPress={() => onSelectCategory(category.name)}
+        />
+      ))}
     </ScrollView>
   );
 }
 
+function CategoryChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.chip,
+        selected && styles.selectedChip,
+      ]}
+    >
+      <Text
+        style={[
+          styles.chipText,
+          selected && styles.selectedChipText,
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
-  scrollView: {
-    flexGrow: 0,
-  },
-  contentContainer: {
-    flexDirection: 'row', // 🔥 REQUIRED for horizontal layout
+  container: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingVertical: 6,
   },
-  categoryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-    height: 40,
+
+  chip: {
+    paddingHorizontal: 14,
+    height:28,
+    borderRadius: 14,
+    backgroundColor: '#1E293B',
+    marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  categoryButtonSelected: {
-    backgroundColor: '#007AFF',
+  
+  selectedChip: {
+    backgroundColor: '#38BDF8',
   },
-  categoryText: {
+
+  chipText: {
+    color: '#CBD5E1',
     fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+    lineHeight:16,
+
   },
-  categoryTextSelected: {
-    color: '#fff',
+
+  selectedChipText: {
+    color: '#0F172A',
     fontWeight: '600',
-  },
-  loadingContainer: {
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

@@ -139,9 +139,6 @@ export default function FavoritesScreen() {
               No favorite quotes yet.{'\n'}
               Tap the heart icon on quotes to add them here!
             </Text>
-            <TouchableOpacity onPress={testFavoritesDirectly} style={styles.testButton}>
-              <Text style={styles.testButtonText}>Run Database Test</Text>
-            </TouchableOpacity>
           </View>
         }
       />
