@@ -6,32 +6,53 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
+
 import ShareButton from '@/components/ShareButton';
-import { mockQuotes } from '@/data/mockQuotes';
 import { scheduleDailyNotification } from '@/lib/notifications';
 import { shareQuote } from '@/lib/shareUtils';
+import { fetchQuotes } from '@/lib/quotes';
+import { Quote } from '@/types';
+
 
 export default function DailyScreen() {
-  const [dailyQuote, setDailyQuote] = useState(mockQuotes[0]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [dailyQuote, setDailyQuote] = useState<Quote | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getRandomQuote();
+    loadQuotes();
     checkNotificationStatus();
   }, []);
 
-  const getRandomQuote = () => {
-    const randomIndex = Math.floor(Math.random() * mockQuotes.length);
-    setDailyQuote(mockQuotes[randomIndex]);
+  const loadQuotes = async () => {
+    try {
+      const data = await fetchQuotes();
+      setQuotes(data);
+      pickRandomQuote(data);
+    } catch (error) {
+      console.error('Failed to load quotes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const pickRandomQuote = (quotesList: Quote[]) => {
+    if (quotesList.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * quotesList.length);
+    setDailyQuote(quotesList[randomIndex]);
   };
 
   const checkNotificationStatus = async () => {
     const settings = await Notifications.getPermissionsAsync();
-    setNotificationsEnabled(settings.granted || settings.ios?.status === 2);
+    setNotificationsEnabled(
+      settings.granted || settings.ios?.status === 2
+    );
   };
 
   const toggleNotifications = async () => {
@@ -49,14 +70,23 @@ export default function DailyScreen() {
     }
   };
 
-  const handleShare = () => {
-    shareQuote(dailyQuote);
+  const handleNewQuote = () => {
+    pickRandomQuote(quotes);
   };
+
+  if (loading || !dailyQuote) {
+    return (
+      <SafeAreaView style={styles.loader}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Quote of the Day</Text>
+
         <View style={styles.notificationContainer}>
           <Text style={styles.notificationText}>Daily Reminder</Text>
           <Switch
@@ -71,20 +101,22 @@ export default function DailyScreen() {
       <View style={styles.quoteContainer}>
         <Text style={styles.quoteText}>"{dailyQuote.text}"</Text>
         <Text style={styles.author}>— {dailyQuote.author}</Text>
-        
-        <View style={styles.tagsContainer}>
-          {dailyQuote.tags?.map((tag) => (
-            <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
-        </View>
+
+        {dailyQuote.tags?.length > 0 && (
+          <View style={styles.tagsContainer}>
+            {(dailyQuote.tags ?? []).map((tag) => (
+              <View key={tag} style={styles.tag}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       <View style={styles.actionsContainer}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={getRandomQuote}
+          onPress={handleNewQuote}
         >
           <Ionicons name="refresh" size={24} color="#007AFF" />
           <Text style={styles.actionText}>New Quote</Text>
@@ -92,10 +124,7 @@ export default function DailyScreen() {
 
         <ShareButton quote={dailyQuote} />
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleShare}
-        >
+        <TouchableOpacity style={styles.actionButton}>
           <Ionicons name="heart-outline" size={24} color="#FF3B30" />
           <Text style={styles.actionText}>Favorite</Text>
         </TouchableOpacity>
@@ -105,94 +134,115 @@ export default function DailyScreen() {
 }
 
 const styles = StyleSheet.create({
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-    padding: 20,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
+
   header: {
-    marginBottom: 30,
+    marginBottom: 28,
   },
+
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 20,
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+    marginBottom: 16,
   },
+
   notificationContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
+
   notificationText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: '600',
+    color: '#1F2937',
   },
+
   quoteContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     padding: 24,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 30,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 32,
   },
+
   quoteText: {
     fontSize: 20,
-    lineHeight: 30,
-    color: '#333',
-    marginBottom: 20,
+    lineHeight: 32,
+    color: '#111827',
     fontStyle: 'italic',
+    marginBottom: 18,
   },
+
   author: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#666',
+    color: '#6B7280',
     textAlign: 'right',
-    marginBottom: 20,
+    marginBottom: 16,
   },
+
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
+
   tag: {
-    backgroundColor: '#e8f4fd',
-    paddingHorizontal: 12,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 999,
   },
+
   tagText: {
     fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#2563EB',
   },
+
   actionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
     marginTop: 'auto',
-    paddingTop: 20,
   },
+
   actionButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    padding: 10,
   },
+
   actionText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666',
+    marginTop: 6,
+    fontSize: 13,
     fontWeight: '500',
+    color: '#475569',
   },
 });

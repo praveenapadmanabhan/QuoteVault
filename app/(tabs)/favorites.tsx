@@ -152,14 +152,14 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0F172A',
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0F172A',
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#0F172A',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#FFFFFF',
   },
   debugButton: {
     backgroundColor: '#007AFF',

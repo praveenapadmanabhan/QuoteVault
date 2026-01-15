@@ -29,7 +29,7 @@ export default function CategoryFilter({
   const loadCategories = async () => {
     try {
       const data = await fetchCategories();
-      console.log('Loaded categories:', data); // Debug log
+      console.log('Loaded categories:', data);
       setCategories(data);
     } catch (error) {
       console.error('Failed to load categories:', error);
@@ -50,9 +50,10 @@ export default function CategoryFilter({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.contentContainer}
       style={styles.scrollView}
+      contentContainerStyle={styles.contentContainer}
     >
+      {/* All category */}
       <TouchableOpacity
         style={[
           styles.categoryButton,
@@ -70,28 +71,32 @@ export default function CategoryFilter({
         </Text>
       </TouchableOpacity>
 
-      {categories.map((category) => (
-        <TouchableOpacity
-          key={category.id}
-          style={[
-            styles.categoryButton,
-            selectedCategory === category.id && styles.categoryButtonSelected,
-          ]}
-          onPress={() => {
-            console.log('Selected category:', category.id, category.name);
-            onSelectCategory(category.id);
-          }}
-        >
-          <Text
+      {/* Dynamic categories */}
+      {categories.map((category) => {
+        const categoryId = String(category.id);
+
+        return (
+          <TouchableOpacity
+            key={categoryId}
             style={[
-              styles.categoryText,
-              selectedCategory === category.id && styles.categoryTextSelected,
+              styles.categoryButton,
+              selectedCategory === categoryId &&
+                styles.categoryButtonSelected,
             ]}
+            onPress={() => onSelectCategory(categoryId)}
           >
-            {category.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === categoryId &&
+                  styles.categoryTextSelected,
+              ]}
+            >
+              {category.name}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -101,6 +106,7 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   contentContainer: {
+    flexDirection: 'row', // 🔥 REQUIRED for horizontal layout
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,

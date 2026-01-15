@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 12 : 8,
     paddingBottom: 12,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#0F172A',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -104,11 +104,6 @@ const styles = StyleSheet.create({
     color: '#333',
     padding: 0,
     margin: 0,
-    ...Platform.select({
-      web: {
-        outlineStyle: 'none',
-      },
-    }),
   },
   clearButton: {
     padding: 4,

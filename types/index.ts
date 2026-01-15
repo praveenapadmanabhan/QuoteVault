@@ -1,20 +1,13 @@
 export interface Quote {
   id: string;
-  text: string;  // Changed from content to text
+  text: string;
   author: string;
+  category: string;
   category_id: string;
-  category?: string;
-  categories?: {
-    id: string;
-    name: string;
-    color: string;
-  };
-  tags?: string[];
-  is_favorite: boolean;
-  is_public?: boolean;
-  user_id?: string;
+  tags: string[];
+  is_public: boolean;
+  user_id: string;
   created_at: string;
-  updated_at?: string;
 }
 
 export interface Category {
