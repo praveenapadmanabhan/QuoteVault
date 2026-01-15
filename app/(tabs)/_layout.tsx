@@ -1,33 +1,55 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: '#007AFF',
+        tabBarInactiveTintColor: '#8E8E93',
+        tabBarStyle: {
+          borderTopColor: '#E5E5EA',
+        },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Quotes',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
+          ),
         }}
       />
+
       <Tabs.Screen
-        name="explore"
+        name="favorites"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Favorites',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="heart-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="daily"
+        options={{
+          title: 'Daily',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>
